@@ -18,7 +18,7 @@ export async function generateStaticParams() {
 
 export default async function ArticlePage({ params }: Props) {
   const { slug } = await params;
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const langCookie = cookieStore.get('perky-lang');
   const lang = (langCookie?.value as LanguageCode) || 'en';
   const article = await getArticleBySlug(slug, lang);

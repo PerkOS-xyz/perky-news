@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export default async function Home() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const langCookie = cookieStore.get('perky-lang');
   const lang = (langCookie?.value as LanguageCode) || 'en';
 
