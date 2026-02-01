@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, ReactNode } from 'react';
 import { LanguageCode, translations, getTranslation } from './translations';
-import { useRouter, usePathname } from 'next/navigation';
+// useRouter/usePathname removed - using window.location directly for reliability
 
 interface LanguageContextType {
   language: LanguageCode;
@@ -18,9 +18,6 @@ interface Props {
 }
 
 export function LanguageProvider({ children, initialLocale = 'en' }: Props) {
-  const router = useRouter();
-  const pathname = usePathname();
-  
   const language = initialLocale;
 
   const setLanguage = (lang: LanguageCode) => {
@@ -28,12 +25,13 @@ export function LanguageProvider({ children, initialLocale = 'en' }: Props) {
     document.cookie = `perky-lang=${lang};path=/;max-age=31536000;SameSite=Lax`;
     
     // Navigate to new locale path
-    // Current path is like /en/articles/slug, we need to replace /en with /es
-    const segments = pathname.split('/');
+    // Use window.location.pathname directly for reliability
+    const currentPath = window.location.pathname;
+    const segments = currentPath.split('/');
     segments[1] = lang; // Replace locale segment
     const newPath = segments.join('/');
     
-    // Use window.location for full page navigation to ensure server components refresh
+    // Full page navigation to ensure server components refresh
     window.location.href = newPath;
   };
 
