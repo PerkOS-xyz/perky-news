@@ -82,6 +82,17 @@ export default async function Home({ params }: Props) {
 
           {/* Sidebar */}
           <aside className="lg:w-1/3 space-y-8">
+            {/* Perky Brand */}
+            <div className="bg-gradient-to-br from-[#0E0716] to-[#1a1a2e] rounded-lg p-6 text-white text-center">
+              <img 
+                src="/perky-mascot.jpg" 
+                alt="Perky - Your AI Guide" 
+                className="w-20 h-20 rounded-full mx-auto mb-4 border-2 border-[#EB1B69]"
+              />
+              <h3 className="font-bold text-lg">Meet Perky 🐧</h3>
+              <p className="text-white/80 text-sm mt-2">Your friendly guide to the agent economy. Powered by PerkOS.</p>
+            </div>
+
             {/* Popular */}
             <div className="bg-gray-50 rounded-lg p-6">
               <h3 className="font-bold text-[#0E0716] mb-4 pb-2 border-b border-gray-200">Popular</h3>
