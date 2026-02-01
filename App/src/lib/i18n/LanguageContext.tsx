@@ -33,7 +33,8 @@ export function LanguageProvider({ children, initialLocale = 'en' }: Props) {
     segments[1] = lang; // Replace locale segment
     const newPath = segments.join('/');
     
-    router.push(newPath);
+    // Use window.location for full page navigation to ensure server components refresh
+    window.location.href = newPath;
   };
 
   const t = getTranslation(language);
