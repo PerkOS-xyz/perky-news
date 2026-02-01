@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 /**
- * Translate specific new articles using Anthropic API
+ * Translate ERC-8004 articles specifically
  */
 
 import admin from 'firebase-admin';
-import Anthropic from '@anthropic-ai/sdk';
 import { readFileSync, existsSync } from 'fs';
 
 const LANGUAGES = {
@@ -17,34 +16,48 @@ const LANGUAGES = {
   zh: 'Chinese (Simplified)'
 };
 
-const NEW_ARTICLE_SLUGS = [
-  'what-are-ai-agents-beginners-guide',
-  'agent-economy-transform-work-2030',
-  'ai-agents-vs-chatbots-key-differences',
-  'how-to-choose-first-ai-agent-platform',
-  'future-personal-ai-digital-twin'
-];
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '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';
 
-const anthropic = new Anthropic();
+const TARGET_SLUGS = [
+  'erc-8004-technical-architecture-deep-dive',
+  'building-trust-ai-on-chain-identity',
+  'how-to-register-ai-agent-erc-8004',
+  'erc-8004-vs-traditional-auth-future-security'
+];
 
 async function translateText(text, langName, context = '') {
   if (!text || text.trim() === '') return '';
   
-  const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 8192,
-    messages: [{
-      role: 'user',
-      content: `Translate to ${langName}. Keep markdown formatting, technical terms (AI agents, LLM, API, etc.), and proper nouns unchanged.
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://perky.news',
+      'X-Title': 'Perky News Translator'
+    },
+    body: JSON.stringify({
+      model: 'anthropic/claude-sonnet-4',
+      max_tokens: 8192,
+      messages: [{
+        role: 'user',
+        content: `Translate to ${langName}. Keep markdown formatting, technical terms (x402, ERC-8004, A2A, MCP, OAuth, JWT, API, etc.), and proper nouns unchanged.
 ${context ? `Context: ${context}` : ''}
 
 ${text}
 
 Provide ONLY the translation, no explanations.`
-    }]
+      }]
+    })
   });
   
-  return response.content[0].text.trim();
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`OpenRouter: ${response.status}`);
+  }
+  
+  const data = await response.json();
+  return data.choices[0].message.content.trim();
 }
 
 async function translateArticle(article) {
@@ -52,7 +65,7 @@ async function translateArticle(article) {
   const excerptEn = typeof article.excerpt === 'string' ? article.excerpt : article.excerpt?.en || '';
   const contentEn = typeof article.content === 'string' ? article.content : article.content?.en || '';
   
-  console.log(`\n🌐 Translating: ${titleEn.substring(0, 50)}...`);
+  console.log(`\n🌐 Translating: ${titleEn.substring(0, 60)}...`);
   
   const title = { en: titleEn };
   const excerpt = { en: excerptEn };
@@ -63,14 +76,14 @@ async function translateArticle(article) {
     
     try {
       title[langCode] = await translateText(titleEn, langName, 'article title - keep it concise');
-      await new Promise(r => setTimeout(r, 200));
+      await new Promise(r => setTimeout(r, 500));
       
       if (excerptEn) {
         excerpt[langCode] = await translateText(excerptEn, langName, 'article excerpt/summary');
-        await new Promise(r => setTimeout(r, 200));
+        await new Promise(r => setTimeout(r, 500));
       }
       
-      content[langCode] = await translateText(contentEn, langName, 'technical article about AI agents');
+      content[langCode] = await translateText(contentEn, langName, 'technical article about blockchain and AI agents');
       
       console.log(' ✓');
     } catch (err) {
@@ -80,7 +93,7 @@ async function translateArticle(article) {
       content[langCode] = contentEn;
     }
     
-    await new Promise(r => setTimeout(r, 500));
+    await new Promise(r => setTimeout(r, 1500));
   }
   
   return { title, excerpt, content };
@@ -99,7 +112,7 @@ function initFirebase() {
     if (existsSync(p)) {
       const sa = JSON.parse(readFileSync(p, 'utf8'));
       admin.initializeApp({ credential: admin.credential.cert(sa) });
-      console.log(`✓ Firebase initialized`);
+      console.log(`✓ Firebase initialized from ${p}`);
       return;
     }
   }
@@ -112,20 +125,21 @@ async function main() {
   initFirebase();
   const db = admin.firestore();
   
-  console.log(`\n📚 Translating ${NEW_ARTICLE_SLUGS.length} new articles\n`);
+  console.log(`\n📚 Translating ${TARGET_SLUGS.length} ERC-8004 articles\n`);
   
   let count = 0;
-  for (const slug of NEW_ARTICLE_SLUGS) {
+  for (const slug of TARGET_SLUGS) {
     count++;
-    console.log(`\n[${count}/${NEW_ARTICLE_SLUGS.length}] ${slug}`);
-    
     const doc = await db.collection('articles').doc(slug).get();
+    
     if (!doc.exists) {
-      console.log(`   ⚠️ Article not found, skipping`);
+      console.log(`⚠️  Article not found: ${slug}`);
       continue;
     }
     
     const article = { slug: doc.id, ...doc.data() };
+    console.log(`\n[${count}/${TARGET_SLUGS.length}] ${slug}`);
+    
     const translated = await translateArticle(article);
     
     await db.collection('articles').doc(slug).update({
@@ -136,10 +150,10 @@ async function main() {
     });
     
     console.log(`✅ Updated ${slug}`);
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 3000));
   }
   
-  console.log('\n🎉 All new articles translated!');
+  console.log('\n🎉 All ERC-8004 articles translated!');
 }
 
 main().catch(e => {

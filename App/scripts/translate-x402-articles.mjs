@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Translate specific new articles using Anthropic API
+ * Translate specific x402 articles using Anthropic API
  */
 
 import admin from 'firebase-admin';
@@ -17,12 +17,11 @@ const LANGUAGES = {
   zh: 'Chinese (Simplified)'
 };
 
-const NEW_ARTICLE_SLUGS = [
-  'what-are-ai-agents-beginners-guide',
-  'agent-economy-transform-work-2030',
-  'ai-agents-vs-chatbots-key-differences',
-  'how-to-choose-first-ai-agent-platform',
-  'future-personal-ai-digital-twin'
+const ARTICLE_SLUGS = [
+  'x402-tutorial-add-payments-api-15-minutes',
+  'micropayments-finally-here-x402-changes-everything',
+  'x402-ai-agents-bots-pay-for-services',
+  'economics-x402-pricing-strategies-api-developers'
 ];
 
 const anthropic = new Anthropic();
@@ -35,7 +34,7 @@ async function translateText(text, langName, context = '') {
     max_tokens: 8192,
     messages: [{
       role: 'user',
-      content: `Translate to ${langName}. Keep markdown formatting, technical terms (AI agents, LLM, API, etc.), and proper nouns unchanged.
+      content: `Translate to ${langName}. Keep markdown formatting, technical terms (x402, ERC-8004, A2A, MCP, USDC, Base, HTTP, API, etc.), code blocks, and proper nouns unchanged.
 ${context ? `Context: ${context}` : ''}
 
 ${text}
@@ -52,7 +51,7 @@ async function translateArticle(article) {
   const excerptEn = typeof article.excerpt === 'string' ? article.excerpt : article.excerpt?.en || '';
   const contentEn = typeof article.content === 'string' ? article.content : article.content?.en || '';
   
-  console.log(`\n🌐 Translating: ${titleEn.substring(0, 50)}...`);
+  console.log(`\n🌐 Translating: ${titleEn.substring(0, 60)}...`);
   
   const title = { en: titleEn };
   const excerpt = { en: excerptEn };
@@ -70,7 +69,7 @@ async function translateArticle(article) {
         await new Promise(r => setTimeout(r, 200));
       }
       
-      content[langCode] = await translateText(contentEn, langName, 'technical article about AI agents');
+      content[langCode] = await translateText(contentEn, langName, 'technical article about blockchain, AI agents, and x402 payment protocol');
       
       console.log(' ✓');
     } catch (err) {
@@ -99,7 +98,7 @@ function initFirebase() {
     if (existsSync(p)) {
       const sa = JSON.parse(readFileSync(p, 'utf8'));
       admin.initializeApp({ credential: admin.credential.cert(sa) });
-      console.log(`✓ Firebase initialized`);
+      console.log(`✓ Firebase initialized from ${p}`);
       return;
     }
   }
@@ -112,12 +111,12 @@ async function main() {
   initFirebase();
   const db = admin.firestore();
   
-  console.log(`\n📚 Translating ${NEW_ARTICLE_SLUGS.length} new articles\n`);
+  console.log(`\n📚 Translating ${ARTICLE_SLUGS.length} x402 articles\n`);
   
   let count = 0;
-  for (const slug of NEW_ARTICLE_SLUGS) {
+  for (const slug of ARTICLE_SLUGS) {
     count++;
-    console.log(`\n[${count}/${NEW_ARTICLE_SLUGS.length}] ${slug}`);
+    console.log(`\n[${count}/${ARTICLE_SLUGS.length}] ${slug}`);
     
     const doc = await db.collection('articles').doc(slug).get();
     if (!doc.exists) {
@@ -125,7 +124,7 @@ async function main() {
       continue;
     }
     
-    const article = { slug: doc.id, ...doc.data() };
+    const article = { slug, ...doc.data() };
     const translated = await translateArticle(article);
     
     await db.collection('articles').doc(slug).update({
@@ -139,7 +138,7 @@ async function main() {
     await new Promise(r => setTimeout(r, 1000));
   }
   
-  console.log('\n🎉 All new articles translated!');
+  console.log('\n🎉 All articles translated!');
 }
 
 main().catch(e => {
