@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Translate ElizaOS articles using Groq
+ * Translate x402 articles using fetch to OpenRouter API
  */
 
 import admin from 'firebase-admin';
@@ -16,49 +16,45 @@ const LANGUAGES = {
   zh: 'Chinese (Simplified)'
 };
 
-const ELIZAOS_SLUGS = [
-  'elizaos-web3-ai-agents-framework',
-  'build-first-ai-agent-elizaos-tutorial',
-  'elizaos-plugins-extending-agent-capabilities',
-  'why-ai16z-open-source-ai-agents-elizaos',
-  'elizaos-vs-langchain-framework-comparison'
+const ARTICLE_SLUGS = [
+  'x402-tutorial-add-payments-api-15-minutes',
+  'micropayments-finally-here-x402-changes-everything',
+  'x402-ai-agents-bots-pay-for-services',
+  'economics-x402-pricing-strategies-api-developers'
 ];
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
-
-if (!GROQ_API_KEY) {
-  console.error('❌ GROQ_API_KEY not set');
-  process.exit(1);
-}
+// Try multiple API options
+const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY || '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';
 
 async function translateText(text, langName, context = '') {
   if (!text || text.trim() === '') return '';
   
-  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${GROQ_API_KEY}`,
-      'Content-Type': 'application/json'
+      'Authorization': `Bearer ${OPENROUTER_KEY}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://perky.news',
+      'X-Title': 'Perky News Translator'
     },
     body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
-      max_tokens: 8192,
+      model: 'google/gemini-flash-1.5',
+      max_tokens: 16384,
       messages: [{
         role: 'user',
-        content: `Translate the following text to ${langName}. Keep markdown formatting, technical terms (ElizaOS, LangChain, ai16z, Web3, DeFi, LLM, API, etc.), and proper nouns unchanged.
+        content: `Translate to ${langName}. Keep markdown formatting, technical terms (x402, ERC-8004, A2A, MCP, USDC, Base, HTTP, API, etc.), code blocks, and proper nouns unchanged.
 ${context ? `Context: ${context}` : ''}
 
-Text to translate:
 ${text}
 
-Provide ONLY the translation, no explanations or additional text.`
+Provide ONLY the translation, no explanations.`
       }]
     })
   });
   
   if (!response.ok) {
     const err = await response.text();
-    throw new Error(`Groq: ${response.status} - ${err}`);
+    throw new Error(`OpenRouter: ${response.status} - ${err.substring(0, 100)}`);
   }
   
   const data = await response.json();
@@ -81,14 +77,14 @@ async function translateArticle(article) {
     
     try {
       title[langCode] = await translateText(titleEn, langName, 'article title - keep it concise');
-      await new Promise(r => setTimeout(r, 200));
+      await new Promise(r => setTimeout(r, 500));
       
       if (excerptEn) {
         excerpt[langCode] = await translateText(excerptEn, langName, 'article excerpt/summary');
-        await new Promise(r => setTimeout(r, 200));
+        await new Promise(r => setTimeout(r, 500));
       }
       
-      content[langCode] = await translateText(contentEn, langName, 'technical article about AI agents and blockchain');
+      content[langCode] = await translateText(contentEn, langName, 'technical article about blockchain, AI agents, and x402 payment protocol');
       
       console.log(' ✓');
     } catch (err) {
@@ -98,7 +94,7 @@ async function translateArticle(article) {
       content[langCode] = contentEn;
     }
     
-    await new Promise(r => setTimeout(r, 500));
+    await new Promise(r => setTimeout(r, 1000));
   }
   
   return { title, excerpt, content };
@@ -117,7 +113,7 @@ function initFirebase() {
     if (existsSync(p)) {
       const sa = JSON.parse(readFileSync(p, 'utf8'));
       admin.initializeApp({ credential: admin.credential.cert(sa) });
-      console.log(`✓ Firebase initialized`);
+      console.log(`✓ Firebase initialized from ${p}`);
       return;
     }
   }
@@ -130,12 +126,12 @@ async function main() {
   initFirebase();
   const db = admin.firestore();
   
-  console.log(`\n📚 Translating ${ELIZAOS_SLUGS.length} ElizaOS articles\n`);
+  console.log(`\n📚 Translating ${ARTICLE_SLUGS.length} x402 articles\n`);
   
   let count = 0;
-  for (const slug of ELIZAOS_SLUGS) {
+  for (const slug of ARTICLE_SLUGS) {
     count++;
-    console.log(`\n[${count}/${ELIZAOS_SLUGS.length}] ${slug}`);
+    console.log(`\n[${count}/${ARTICLE_SLUGS.length}] ${slug}`);
     
     const doc = await db.collection('articles').doc(slug).get();
     if (!doc.exists) {
@@ -143,7 +139,7 @@ async function main() {
       continue;
     }
     
-    const article = { slug: doc.id, ...doc.data() };
+    const article = { slug, ...doc.data() };
     const translated = await translateArticle(article);
     
     await db.collection('articles').doc(slug).update({
@@ -154,10 +150,10 @@ async function main() {
     });
     
     console.log(`✅ Updated ${slug}`);
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 2000));
   }
   
-  console.log('\n🎉 All ElizaOS articles translated!');
+  console.log('\n🎉 All articles translated!');
 }
 
 main().catch(e => {

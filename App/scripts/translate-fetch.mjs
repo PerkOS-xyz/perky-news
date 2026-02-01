@@ -1,10 +1,16 @@
 #!/usr/bin/env node
 /**
- * Translate ElizaOS articles using Groq
+ * Translate new articles using direct Anthropic API calls
  */
 
 import admin from 'firebase-admin';
 import { readFileSync, existsSync } from 'fs';
+
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+if (!ANTHROPIC_API_KEY) {
+  console.error('❌ ANTHROPIC_API_KEY not set in environment');
+  process.exit(1);
+}
 
 const LANGUAGES = {
   es: 'Spanish',
@@ -16,53 +22,46 @@ const LANGUAGES = {
   zh: 'Chinese (Simplified)'
 };
 
-const ELIZAOS_SLUGS = [
-  'elizaos-web3-ai-agents-framework',
-  'build-first-ai-agent-elizaos-tutorial',
-  'elizaos-plugins-extending-agent-capabilities',
-  'why-ai16z-open-source-ai-agents-elizaos',
-  'elizaos-vs-langchain-framework-comparison'
+const NEW_ARTICLE_SLUGS = [
+  'what-are-ai-agents-beginners-guide',
+  'agent-economy-transform-work-2030',
+  'ai-agents-vs-chatbots-key-differences',
+  'how-to-choose-first-ai-agent-platform',
+  'future-personal-ai-digital-twin'
 ];
-
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
-
-if (!GROQ_API_KEY) {
-  console.error('❌ GROQ_API_KEY not set');
-  process.exit(1);
-}
 
 async function translateText(text, langName, context = '') {
   if (!text || text.trim() === '') return '';
   
-  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${GROQ_API_KEY}`,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'x-api-key': ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01'
     },
     body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
+      model: 'claude-sonnet-4-20250514',
       max_tokens: 8192,
       messages: [{
         role: 'user',
-        content: `Translate the following text to ${langName}. Keep markdown formatting, technical terms (ElizaOS, LangChain, ai16z, Web3, DeFi, LLM, API, etc.), and proper nouns unchanged.
+        content: `Translate to ${langName}. Keep markdown formatting, technical terms (AI agents, LLM, API, etc.), and proper nouns unchanged.
 ${context ? `Context: ${context}` : ''}
 
-Text to translate:
 ${text}
 
-Provide ONLY the translation, no explanations or additional text.`
+Provide ONLY the translation, no explanations.`
       }]
     })
   });
   
   if (!response.ok) {
     const err = await response.text();
-    throw new Error(`Groq: ${response.status} - ${err}`);
+    throw new Error(`Anthropic API: ${response.status} - ${err.substring(0, 100)}`);
   }
   
   const data = await response.json();
-  return data.choices[0].message.content.trim();
+  return data.content[0].text.trim();
 }
 
 async function translateArticle(article) {
@@ -70,7 +69,7 @@ async function translateArticle(article) {
   const excerptEn = typeof article.excerpt === 'string' ? article.excerpt : article.excerpt?.en || '';
   const contentEn = typeof article.content === 'string' ? article.content : article.content?.en || '';
   
-  console.log(`\n🌐 Translating: ${titleEn.substring(0, 60)}...`);
+  console.log(`\n🌐 Translating: ${titleEn.substring(0, 50)}...`);
   
   const title = { en: titleEn };
   const excerpt = { en: excerptEn };
@@ -80,15 +79,15 @@ async function translateArticle(article) {
     process.stdout.write(`   → ${langName}...`);
     
     try {
-      title[langCode] = await translateText(titleEn, langName, 'article title - keep it concise');
-      await new Promise(r => setTimeout(r, 200));
+      title[langCode] = await translateText(titleEn, langName, 'article title - keep concise');
+      await new Promise(r => setTimeout(r, 300));
       
       if (excerptEn) {
-        excerpt[langCode] = await translateText(excerptEn, langName, 'article excerpt/summary');
-        await new Promise(r => setTimeout(r, 200));
+        excerpt[langCode] = await translateText(excerptEn, langName, 'article excerpt');
+        await new Promise(r => setTimeout(r, 300));
       }
       
-      content[langCode] = await translateText(contentEn, langName, 'technical article about AI agents and blockchain');
+      content[langCode] = await translateText(contentEn, langName, 'technical article about AI agents');
       
       console.log(' ✓');
     } catch (err) {
@@ -107,19 +106,12 @@ async function translateArticle(article) {
 function initFirebase() {
   if (admin.apps.length) return;
   
-  const paths = [
-    process.env.FIREBASE_SA_PATH,
-    process.env.HOME + '/.config/firebase/perky-news-sa.json',
-    '/root/.config/firebase/perky-news-sa.json'
-  ].filter(Boolean);
-  
-  for (const p of paths) {
-    if (existsSync(p)) {
-      const sa = JSON.parse(readFileSync(p, 'utf8'));
-      admin.initializeApp({ credential: admin.credential.cert(sa) });
-      console.log(`✓ Firebase initialized`);
-      return;
-    }
+  const saPath = process.env.HOME + '/.config/firebase/perky-news-sa.json';
+  if (existsSync(saPath)) {
+    const sa = JSON.parse(readFileSync(saPath, 'utf8'));
+    admin.initializeApp({ credential: admin.credential.cert(sa) });
+    console.log(`✓ Firebase initialized`);
+    return;
   }
   
   console.error('❌ Firebase service account not found');
@@ -127,19 +119,21 @@ function initFirebase() {
 }
 
 async function main() {
+  console.log('🔑 API Key found:', ANTHROPIC_API_KEY.substring(0, 10) + '...');
+  
   initFirebase();
   const db = admin.firestore();
   
-  console.log(`\n📚 Translating ${ELIZAOS_SLUGS.length} ElizaOS articles\n`);
+  console.log(`\n📚 Translating ${NEW_ARTICLE_SLUGS.length} new articles\n`);
   
   let count = 0;
-  for (const slug of ELIZAOS_SLUGS) {
+  for (const slug of NEW_ARTICLE_SLUGS) {
     count++;
-    console.log(`\n[${count}/${ELIZAOS_SLUGS.length}] ${slug}`);
+    console.log(`\n[${count}/${NEW_ARTICLE_SLUGS.length}] ${slug}`);
     
     const doc = await db.collection('articles').doc(slug).get();
     if (!doc.exists) {
-      console.log(`   ⚠️ Article not found, skipping`);
+      console.log(`   ⚠️ Article not found`);
       continue;
     }
     
@@ -153,11 +147,11 @@ async function main() {
       translatedAt: new Date().toISOString()
     });
     
-    console.log(`✅ Updated ${slug}`);
+    console.log(`✅ Saved ${slug}`);
     await new Promise(r => setTimeout(r, 1000));
   }
   
-  console.log('\n🎉 All ElizaOS articles translated!');
+  console.log('\n🎉 All translations complete!');
 }
 
 main().catch(e => {
