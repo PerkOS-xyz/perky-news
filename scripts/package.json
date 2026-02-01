@@ -3,10 +3,12 @@
   "version": "1.0.0",
   "description": "Scripts for Perky News article management",
   "scripts": {
-    "translate": "node translate-article.js",
-    "translate:all": "node translate-all-articles.js"
+    "translate": "node translate-articles.js",
+    "translate:all": "node translate-articles.js",
+    "translate:category": "node translate-articles.js --category"
   },
   "dependencies": {
-    "firebase-admin": "^12.0.0"
+    "dotenv": "^16.3.1",
+    "firebase": "^10.7.0"
   }
 }

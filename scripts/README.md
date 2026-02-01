@@ -2,92 +2,81 @@
 
 ## Article Translation
 
-All articles must be translated to all 8 supported languages:
-- 🇺🇸 English (en) - Source
-- 🇪🇸 Spanish (es)
-- 🇫🇷 French (fr)
-- 🇮🇹 Italian (it)
-- 🇩🇪 German (de)
-- 🇯🇵 Japanese (ja)
-- 🇰🇷 Korean (ko)
-- 🇨🇳 Chinese (zh)
+Translates articles to all 8 supported languages using Claude API.
 
 ### Setup
 
-1. Create a Firebase service account:
-   - Go to Firebase Console → Project Settings → Service Accounts
-   - Generate new private key
-   - Save as `~/.clawdbot/firebase-perky-news-sa.json`
-
-2. Set environment variables:
-   ```bash
-   export FIREBASE_SERVICE_ACCOUNT=~/.clawdbot/firebase-perky-news-sa.json
-   export ANTHROPIC_API_KEY=your-key
-   ```
-
-### Single Article Translation
-
 ```bash
-node scripts/translate-article.js <article-slug>
+cd scripts
+npm install
 
-# Example:
-node scripts/translate-article.js hackathon-to-startup-success-stories
+# Configure credentials
+cp .env.example .env
+# Edit .env with your Firebase and Anthropic API keys
 ```
 
-### Batch Translation
+### Usage
 
 ```bash
-# Translate all articles
-node scripts/translate-all-articles.js
+# Translate ALL articles
+node translate-articles.js
 
-# Translate only hackathon articles
-node scripts/translate-all-articles.js --category hackathons
+# Translate single article
+node translate-articles.js --slug hackathon-to-startup-success-stories
+
+# Translate by category
+node translate-articles.js --category hackathons
 ```
 
-## Article Creation Workflow
+### Supported Languages
 
-When creating a new article:
-
-1. **Write content in English** (source language)
-2. **Upload to Firebase** with English content
-3. **Run translation script:**
-   ```bash
-   node scripts/translate-article.js <new-article-slug>
-   ```
-4. **Verify** translations in Firebase Console
+| Code | Language |
+|------|----------|
+| en | English (source) |
+| es | Spanish |
+| fr | French |
+| it | Italian |
+| de | German |
+| ja | Japanese |
+| ko | Korean |
+| zh | Chinese |
 
 ### Firebase Article Structure
 
+Articles must have multilingual fields:
+
 ```javascript
 {
-  slug: "article-slug",
+  slug: "article-id",
   title: {
     en: "English Title",
     es: "Título en Español",
-    fr: "Titre en Français",
     // ... all 8 languages
   },
-  excerpt: {
-    en: "...",
-    es: "...",
-    // ...
-  },
-  content: {
-    en: "Full markdown content...",
-    es: "Contenido completo...",
-    // ...
-  },
+  excerpt: { en: "...", es: "...", ... },
+  content: { en: "...", es: "...", ... },
   category: "hackathons",
   status: "published",
   publishedAt: "2026-02-01",
-  // ...
+  featured: false
 }
 ```
 
-## Image Generation
+### Article Workflow
 
-For article cover images, use Replicate:
+1. **Create article in English** (Firebase Console or script)
+2. **Set `status: "published"`** for visibility
+3. **Run translation:** `node translate-articles.js --slug new-article-slug`
+4. **Verify** in multiple languages on perky.news
 
-```bash
-node ~/clawd/scripts/generate-image.js "prompt" output.png
+### Environment Variables
+
+```
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=perky-news
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+ANTHROPIC_API_KEY=
 ```
