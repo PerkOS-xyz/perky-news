@@ -51,13 +51,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="">
       <body 
         className={`${sora.variable} ${outfit.variable} antialiased min-h-screen flex flex-col`}
         style={{ 
           fontFamily: 'var(--font-outfit), system-ui, sans-serif',
-          backgroundColor: '#0E0716',
-          color: '#FFFFFF'
+          backgroundColor: '#FFFFFF',
+          color: '#0E0716'
         }}
       >
         <div className="noise-overlay">
