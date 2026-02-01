@@ -140,41 +140,82 @@ export default async function ArticlePage({ params }: Props) {
 }
 
 function formatContent(content: string): string {
-  let html = content
-    .replace(/^# (.*)$/gm, '<h1 class="text-3xl font-bold mt-8 mb-4"></h1>')
-    .replace(/^## (.*)$/gm, '<h2 class="text-2xl font-bold mt-8 mb-3"></h2>')
-    .replace(/^### (.*)$/gm, '<h3 class="text-xl font-bold mt-6 mb-2"></h3>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong></strong>')
-    .replace(/\*(.*?)\*/g, '<em></em>')
-    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="" target="_blank" rel="noopener noreferrer" class="text-[#EB1B69] hover:underline"></a>')
-    .replace(/^- (.*)$/gm, '<li class="ml-4"></li>');
+  let html = content;
   
-  // Wrap li in ul (simple approach)
+  // Code blocks first (protect from other replacements)
+  html = html.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre class="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-4"><code>$2</code></pre>');
+  
+  // Inline code
+  html = html.replace(/`([^`]+)`/g, '<code class="bg-gray-100 text-[#EB1B69] px-1 py-0.5 rounded text-sm">$1</code>');
+  
+  // Tables
+  html = html.replace(/\|(.+)\|\n\|[-:\s|]+\|\n((?:\|.+\|\n?)+)/g, (match, header, body) => {
+    const headers = header.split('|').filter((h: string) => h.trim()).map((h: string) => `<th class="border border-gray-300 px-4 py-2 bg-gray-100 font-semibold">${h.trim()}</th>`).join('');
+    const rows = body.trim().split('\n').map((row: string) => {
+      const cells = row.split('|').filter((c: string) => c.trim()).map((c: string) => `<td class="border border-gray-300 px-4 py-2">${c.trim()}</td>`).join('');
+      return `<tr>${cells}</tr>`;
+    }).join('');
+    return `<table class="w-full border-collapse my-6"><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>`;
+  });
+  
+  // Headings (FIXED: added $1 capture)
+  html = html.replace(/^### (.*)$/gm, '<h3 class="text-xl font-bold mt-6 mb-2">$1</h3>');
+  html = html.replace(/^## (.*)$/gm, '<h2 class="text-2xl font-bold mt-8 mb-3">$1</h2>');
+  html = html.replace(/^# (.*)$/gm, '<h1 class="text-3xl font-bold mt-8 mb-4">$1</h1>');
+  
+  // Bold and italic (FIXED: added $1 capture)
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  
+  // Links (FIXED: added $1 and $2 captures)
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-[#EB1B69] hover:underline">$1</a>');
+  
+  // Numbered lists
+  html = html.replace(/^\d+\.\s+(.*)$/gm, '<li class="ml-4 list-decimal">$1</li>');
+  
+  // Bullet lists (FIXED: added $1 capture)
+  html = html.replace(/^[-*]\s+(.*)$/gm, '<li class="ml-4">$1</li>');
+  
+  // Horizontal rule
+  html = html.replace(/^---$/gm, '<hr class="my-8 border-gray-200">');
+  
+  // Wrap li in ul/ol
   const lines = html.split('\n');
   let inList = false;
+  let listType = 'ul';
   const processed: string[] = [];
   
   for (const line of lines) {
-    if (line.includes('<li')) {
+    const isListItem = line.includes('<li');
+    const isNumbered = line.includes('list-decimal');
+    
+    if (isListItem) {
       if (!inList) {
-        processed.push('<ul class="list-disc my-4 pl-6">');
+        listType = isNumbered ? 'ol' : 'ul';
+        const listClass = isNumbered ? 'list-decimal' : 'list-disc';
+        processed.push(`<${listType} class="${listClass} my-4 pl-6 space-y-1">`);
         inList = true;
       }
-      processed.push(line);
+      processed.push(line.replace(' list-decimal', ''));
     } else {
       if (inList) {
-        processed.push('</ul>');
+        processed.push(`</${listType}>`);
         inList = false;
       }
       processed.push(line);
     }
   }
-  if (inList) processed.push('</ul>');
+  if (inList) processed.push(`</${listType}>`);
   
   html = processed.join('\n');
   
-  // Paragraphs
-  html = html.replace(/\n\n/g, '</p><p class="my-4">');
+  // Paragraphs (wrap non-tagged text)
+  html = html.split('\n\n').map(block => {
+    const trimmed = block.trim();
+    if (!trimmed) return '';
+    if (trimmed.startsWith('<')) return trimmed;
+    return `<p class="my-4">${trimmed}</p>`;
+  }).join('\n');
   
   return html;
 }
