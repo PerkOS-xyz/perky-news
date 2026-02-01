@@ -2,29 +2,36 @@
 
 Your source for Web3 AI ecosystem news. Covering x402, ERC-8004, AI agents, and the infrastructure powering the agent economy.
 
+**Live:** [https://perky.news](https://perky.news)
+
+## Features
+
+- 🌐 **8 Languages** - EN, ES, FR, IT, DE, JA, KO, ZH
+- 🤖 **AI-Powered Content** - Articles generated and translated via Claude
+- 🖼️ **Professional Images** - Cover images generated with FLUX 1.1 Pro
+- 🔥 **Firebase Backend** - Firestore for articles, real-time updates
+- ⚡ **Next.js 15** - App Router, Server Components
+- 🎨 **Tailwind CSS v4** - Modern styling
+- 📱 **Mobile Responsive** - Works on all devices
+
 ## Project Structure
 
 ```
 perky-news/
-├── App/              # Next.js web application
-├── Contracts/        # Smart contracts (coming soon)
-└── README.md         # This file
+├── App/                    # Next.js web application
+│   ├── src/
+│   │   ├── app/           # App Router pages
+│   │   ├── components/    # React components
+│   │   └── lib/           # Utilities & Firebase
+│   └── scripts/           # Content management
+│       ├── create-article.mjs      # Create + auto-translate
+│       ├── translate-article.mjs   # Translate existing
+│       └── generate-article-images.mjs  # FLUX image gen
+├── Contracts/              # Smart contracts (coming soon)
+└── README.md
 ```
 
-## App
-
-The main web application built with Next.js 16, Tailwind CSS v4, and shadcn/ui.
-
-**Features:**
-- 📰 Articles with category filtering
-- 💌 Newsletter subscription (free tier)
-- 👑 Premium subscription via x402 ($1/mo)
-- 🌙 Dark mode
-- 📱 Mobile responsive
-
-[View App README →](./App/README.md)
-
-### Quick Start
+## Quick Start
 
 ```bash
 cd App
@@ -34,25 +41,69 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000)
 
-## Contracts
+## Content Workflow
 
-Smart contracts for premium subscriptions and on-chain features.
+### Create New Article (with auto-translation)
+```bash
+cd App
+node scripts/create-article.mjs article.json
+```
 
-**Planned:**
-- Subscription NFT
-- x402 payment verification
-- Token-gated content
+Articles are automatically translated to 7 languages via OpenRouter.
 
-[View Contracts README →](./Contracts/README.md)
+### Generate Cover Images
+```bash
+REPLICATE_API_TOKEN=xxx node scripts/generate-article-images.mjs
+```
+
+## Multi-Language Support
+
+| Code | Language |
+|------|----------|
+| en | English |
+| es | Spanish |
+| fr | French |
+| it | Italian |
+| de | German |
+| ja | Japanese |
+| ko | Korean |
+| zh | Chinese (Simplified) |
+
+Users select language from the header dropdown. Preference is saved in a cookie.
 
 ## Topics Covered
 
 - 💰 **x402 Protocol** - HTTP-native payments
 - 🔐 **ERC-8004** - Trustless agent identity
 - 🤖 **AI Agents** - Autonomous AI systems
-- 🦊 **OpenClaw** - Agent framework
-- 💜 **ElizaOS** - Crypto-native agents
-- 📈 **DeFi + AI** - DeFAI applications
+- 🌐 **A2A Protocol** - Agent-to-agent communication
+- 🏗️ **Agent Stack** - A2A + MCP + x402 + ERC-8004
+- 🏆 **Hackathons** - ETHGlobal events calendar
+
+## Tech Stack
+
+- **Frontend:** Next.js 15, React 19, Tailwind CSS v4
+- **Backend:** Firebase (Firestore)
+- **Hosting:** Netlify
+- **AI:** OpenRouter (Claude) for translations
+- **Images:** Replicate (FLUX 1.1 Pro)
+
+## Environment Variables
+
+```bash
+# Firebase
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+
+# Scripts (local only)
+OPENROUTER_API_KEY=     # For translations
+REPLICATE_API_TOKEN=    # For image generation
+FIREBASE_SA_PATH=       # Service account path
+```
 
 ## Part of PerkOS
 
