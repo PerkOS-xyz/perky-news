@@ -57,17 +57,21 @@ export default async function Home({ params }: Props) {
                 {latest.map((article) => (
                   <article key={article.slug} className="flex gap-4 group">
                     <Link href={`/${locale}/articles/${article.slug}`} className="shrink-0">
-                      <div className="w-28 h-20 bg-gray-100 rounded overflow-hidden">
+                      <div className="w-32 h-24 bg-gray-100 rounded overflow-hidden">
                         <img src={article.coverImage || '/perkos-logo.jpg'} alt={article.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>
                       </div>
                     </Link>
                     <div className="flex-1 min-w-0">
                       <Link href={`/${locale}/articles/${article.slug}`}>
-                        <h3 className="font-semibold text-[#0E0716] group-hover:text-[#EB1B69] transition-colors line-clamp-2 text-sm">
+                        <span className="text-xs font-semibold text-[#EB1B69] uppercase tracking-wide">
+                          {article.category.replace('-', ' ')}
+                        </span>
+                        <h3 className="font-semibold text-[#0E0716] group-hover:text-[#EB1B69] transition-colors line-clamp-2 mt-1">
                           {article.title}
                         </h3>
-                        <p className="text-xs text-gray-400 mt-1">{article.publishedAt}</p>
+                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">{article.excerpt}</p>
+                        <p className="text-xs text-gray-400 mt-2">{article.publishedAt}</p>
                       </Link>
                     </div>
                   </article>
@@ -86,6 +90,9 @@ export default async function Home({ params }: Props) {
                   <Link key={article.slug} href={`/${locale}/articles/${article.slug}`} className="flex gap-3 group">
                     <span className="text-2xl font-bold text-gray-300">{index + 1}</span>
                     <div>
+                      <span className="text-xs text-[#EB1B69] uppercase">
+                        {article.category.replace('-', ' ')}
+                      </span>
                       <h4 className="text-sm font-medium text-[#0E0716] group-hover:text-[#EB1B69] transition-colors line-clamp-2">
                         {article.title}
                       </h4>
