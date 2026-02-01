@@ -6,6 +6,7 @@ export const languages = [
   { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
   { code: 'ja', name: '日本語', flag: '🇯🇵' },
   { code: 'ko', name: '한국어', flag: '🇰🇷' },
+  { code: 'zh', name: '中文', flag: '🇨🇳' },
 ] as const;
 
 export type LanguageCode = typeof languages[number]['code'];
@@ -373,6 +374,51 @@ export const translations: Record<LanguageCode, {
       privacy: '개인정보 처리방침',
       terms: '이용약관',
       copyright: '© 2026 Perky News. All rights reserved.',
+    },
+  },
+  zh: {
+    nav: {
+      news: '新闻',
+      articles: '文章',
+      about: '关于',
+      subscribe: '订阅',
+    },
+    home: {
+      heroTitle: '代理经济编年史',
+      heroSubtitle: '您获取AI代理、Web3协议和自主系统未来的每日信息来源。',
+      latestNews: '最新新闻',
+      mostPopular: '最受欢迎',
+      meetPerky: '认识Perky',
+      perkyDescription: '您通往代理经济的友好向导。Perky为您精选AI代理、Web3协议和自主系统的最新新闻。',
+      stayUpdated: '保持更新',
+      newsletterCta: '将代理经济的最新新闻发送到您的邮箱。',
+      emailPlaceholder: '输入您的邮箱',
+      subscribeButton: '订阅',
+    },
+    article: {
+      backToHome: '← 返回首页',
+      sources: '来源',
+      minRead: '分钟阅读',
+      relatedArticles: '相关文章',
+    },
+    categories: {
+      x402: 'x402协议',
+      'erc-8004': 'ERC-8004',
+      'ai-agents': 'AI代理',
+      hackathons: '黑客松',
+      defi: 'DeFi',
+      general: '综合',
+      openclaw: 'OpenClaw',
+      eliza: 'ElizaOS',
+    },
+    footer: {
+      tagline: '代理经济编年史',
+      quickLinks: '快速链接',
+      topics: '主题',
+      legal: '法律信息',
+      privacy: '隐私政策',
+      terms: '服务条款',
+      copyright: '© 2026 Perky News. 保留所有权利。',
     },
   },
 };

@@ -20,7 +20,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Check localStorage first, then browser language
     const stored = localStorage.getItem(STORAGE_KEY) as LanguageCode | null;
-    if (stored && ['en', 'es', 'fr', 'it', 'de', 'ja', 'ko'].includes(stored)) {
+    if (stored && ['en', 'es', 'fr', 'it', 'de', 'ja', 'ko', 'zh'].includes(stored)) {
       setLanguageState(stored);
     } else {
       const detected = detectBrowserLanguage();
