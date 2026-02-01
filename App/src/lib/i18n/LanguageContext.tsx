@@ -12,20 +12,26 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'perky-news-language';
+const COOKIE_NAME = 'perky-lang';
+
+function setCookie(lang: LanguageCode) {
+  document.cookie = `${COOKIE_NAME}=${lang};path=/;max-age=31536000;SameSite=Lax`;
+}
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<LanguageCode>('en');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Check localStorage first, then browser language
     const stored = localStorage.getItem(STORAGE_KEY) as LanguageCode | null;
     if (stored && ['en', 'es', 'fr', 'it', 'de', 'ja', 'ko', 'zh'].includes(stored)) {
       setLanguageState(stored);
+      setCookie(stored);
     } else {
       const detected = detectBrowserLanguage();
       setLanguageState(detected);
       localStorage.setItem(STORAGE_KEY, detected);
+      setCookie(detected);
     }
     setMounted(true);
   }, []);
@@ -33,11 +39,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const setLanguage = (lang: LanguageCode) => {
     setLanguageState(lang);
     localStorage.setItem(STORAGE_KEY, lang);
+    setCookie(lang);
+    window.location.reload();
   };
 
   const t = getTranslation(language);
 
-  // Prevent hydration mismatch
   if (!mounted) {
     return (
       <LanguageContext.Provider value={{ language: 'en', setLanguage, t: translations.en }}>

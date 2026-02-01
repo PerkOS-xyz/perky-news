@@ -1,9 +1,11 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 import { getArticleBySlug, getArticles, categoryLabels } from '@/lib/articles';
+import { LanguageCode } from '@/lib/i18n/translations';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 60;
+export const revalidate = 0;
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -11,14 +13,15 @@ interface Props {
 
 export async function generateStaticParams() {
   const articles = await getArticles();
-  return articles.map((article) => ({
-    slug: article.slug,
-  }));
+  return articles.map((article) => ({ slug: article.slug }));
 }
 
 export default async function ArticlePage({ params }: Props) {
   const { slug } = await params;
-  const article = await getArticleBySlug(slug);
+  const cookieStore = await cookies();
+  const langCookie = cookieStore.get('perky-lang');
+  const lang = (langCookie?.value as LanguageCode) || 'en';
+  const article = await getArticleBySlug(slug, lang);
 
   if (!article) {
     notFound();
