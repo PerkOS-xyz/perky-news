@@ -38,7 +38,7 @@ async function translateText(text, langName, context = '') {
       'X-Title': 'Perky News Translator'
     },
     body: JSON.stringify({
-      model: 'google/gemini-flash-1.5',
+      model: 'google/gemini-2.0-flash-001',
       max_tokens: 16384,
       messages: [{
         role: 'user',
