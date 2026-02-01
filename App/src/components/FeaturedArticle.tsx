@@ -1,14 +1,19 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { Article } from '@/lib/articles';
+import { useLanguage } from '@/lib/i18n';
 
 interface FeaturedArticleProps {
   article: Article;
 }
 
 export function FeaturedArticle({ article }: FeaturedArticleProps) {
+  const { language } = useLanguage();
+
   return (
-    <Link href={`/articles/${article.slug}`} className='block group'>
+    <Link href={`/${language}/articles/${article.slug}`} className='block group'>
       <div className='relative overflow-hidden rounded-xl bg-[#1B1833] border border-[#2d2548]/50'>
         {article.coverImage && (
           <img 

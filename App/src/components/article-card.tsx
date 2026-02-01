@@ -1,5 +1,8 @@
+'use client';
+
 import Link from 'next/link';
 import { type Article, categoryLabels, type Category } from '@/lib/articles';
+import { useLanguage } from '@/lib/i18n';
 
 interface ArticleCardProps {
   article: Article;
@@ -29,9 +32,12 @@ const categoryIcons: Record<Category, string> = {
 };
 
 export function ArticleCard({ article, featured = false }: ArticleCardProps) {
+  const { language } = useLanguage();
+  const articleUrl = `/${language}/articles/${article.slug}`;
+
   if (featured) {
     return (
-      <Link href={`/articles/${article.slug}`} className="group block">
+      <Link href={articleUrl} className="group block">
         <article className="relative rounded-3xl overflow-hidden bg-[#1B1833]/50 border border-[#2d2548] hover:border-[#EB1B69]/30 transition-all duration-500 hover-lift">
           <div className="grid md:grid-cols-5 gap-0">
             {/* Image */}
@@ -95,7 +101,7 @@ export function ArticleCard({ article, featured = false }: ArticleCardProps) {
   }
 
   return (
-    <Link href={`/articles/${article.slug}`} className="group block h-full">
+    <Link href={articleUrl} className="group block h-full">
       <article className="h-full rounded-2xl overflow-hidden bg-[#1B1833]/50 border border-[#2d2548] hover:border-[#EB1B69]/30 transition-all duration-300 hover-lift flex flex-col">
         {/* Image */}
         <div className="relative h-48 overflow-hidden">

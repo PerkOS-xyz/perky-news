@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { FeaturedArticle } from './FeaturedArticle';
 import { ArticleCard } from './article-card';
