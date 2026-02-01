@@ -1,0 +1,12 @@
+{
+  "name": "perky-news-scripts",
+  "version": "1.0.0",
+  "description": "Scripts for Perky News article management",
+  "scripts": {
+    "translate": "node translate-article.js",
+    "translate:all": "node translate-all-articles.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  }
+}
