@@ -1,7 +1,7 @@
 import { db } from './firebase/config';
 import { collection, getDocs, doc, getDoc, query, where, orderBy, limit } from 'firebase/firestore';
 
-export type Category = 'x402' | 'erc-8004' | 'ai-agents' | 'openclaw' | 'eliza' | 'defi' | 'general';
+export type Category = 'x402' | 'erc-8004' | 'ai-agents' | 'openclaw' | 'eliza' | 'defi' | 'hackathons' | 'general';
 
 export interface Article {
   slug: string;
@@ -24,6 +24,7 @@ export const categoryLabels: Record<Category, string> = {
   'openclaw': 'OpenClaw',
   'eliza': 'ElizaOS',
   'defi': 'DeFi',
+  'hackathons': 'Hackathons',
   'general': 'General',
 };
 
@@ -34,6 +35,7 @@ export const categoryColors: Record<Category, string> = {
   'openclaw': 'bg-orange-100 text-orange-800',
   'eliza': 'bg-pink-100 text-pink-800',
   'defi': 'bg-yellow-100 text-yellow-800',
+  'hackathons': 'bg-cyan-100 text-cyan-800',
   'general': 'bg-gray-100 text-gray-800',
 };
 
@@ -107,5 +109,5 @@ export async function getFeaturedArticles(): Promise<Article[]> {
 }
 
 export function getAllCategories(): Category[] {
-  return ['x402', 'erc-8004', 'ai-agents', 'openclaw', 'eliza', 'defi', 'general'];
+  return ['x402', 'erc-8004', 'ai-agents', 'openclaw', 'eliza', 'defi', 'hackathons', 'general'];
 }

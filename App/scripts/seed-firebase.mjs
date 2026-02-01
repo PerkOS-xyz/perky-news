@@ -21,6 +21,7 @@ const topics = [
   { id: 'openclaw', name: 'OpenClaw', description: 'Open-source AI agent framework', color: '#f97316' },
   { id: 'eliza', name: 'ElizaOS', description: 'Crypto-native AI agent framework', color: '#ec4899' },
   { id: 'defi', name: 'DeFi', description: 'Decentralized finance protocols and innovations', color: '#eab308' },
+  { id: 'hackathons', name: 'Hackathons', description: 'Web3 hackathons, competitions and builder events', color: '#06b6d4' },
   { id: 'general', name: 'General', description: 'General news and updates', color: '#6b7280' },
 ];
 
